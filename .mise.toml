@@ -1,0 +1,30 @@
+[tools]
+act = 'latest'
+go = '1.26'
+golangci-lint = '2.12.2'
+goreleaser = "latest"
+pre-commit = 'latest'
+
+[tasks.fmt]
+description = "Format Go source files"
+run = ["gofmt -w ."]
+
+[tasks.test]
+description = "Run tests with race detector"
+run = ["go test -v -race ./..."]
+
+[tasks.lint]
+description = "Run linter"
+run = ["golangci-lint run"]
+
+[tasks.build]
+description = "Build the CLI binary"
+run = ["go build -o bin/flume ."]
+
+[tasks.release-dry-run]
+description = "Test the release build without publishing"
+run = ["goreleaser release --snapshot --clean"]
+
+[tasks.ci]
+description = "Run pre-commit on all files"
+run = ["pre-commit run --all-files"]
