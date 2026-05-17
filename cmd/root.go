@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/mdgreenwald/flume-water-cli/internal/cache"
+	"github.com/mdgreenwald/flume-water-cli/internal/config"
 	flumewater "github.com/mdgreenwald/lib-flume-water"
 	"github.com/spf13/cobra"
 )
@@ -21,6 +22,10 @@ var (
 	passwordFlag     string
 )
 
+// cfg holds the loaded user configuration. Available to all commands after
+// PersistentPreRunE fires.
+var cfg *config.Config
+
 // newClient is a factory that tests can override to inject a custom client.
 var newClient = func() *flumewater.Client {
 	return flumewater.NewClient()
@@ -30,6 +35,11 @@ var rootCmd = &cobra.Command{
 	Use:     "flume",
 	Short:   "CLI tool for interacting with the Flume Water API",
 	Version: version,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		var err error
+		cfg, err = config.Load()
+		return err
+	},
 }
 
 // Execute runs the root command.

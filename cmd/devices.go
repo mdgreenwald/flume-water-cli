@@ -18,6 +18,10 @@ var devicesListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all devices",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if locationIDFlag == "" && cfg != nil && cfg.DefaultLocationID != "" {
+			locationIDFlag = cfg.DefaultLocationID
+		}
+
 		client, result, err := authenticate(cmd.Context())
 		if err != nil {
 			return err

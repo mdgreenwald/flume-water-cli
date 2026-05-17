@@ -23,6 +23,9 @@ var usageQueryCmd = &cobra.Command{
 	Use:   "query",
 	Short: "Query water usage for a device",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		if deviceIDFlag == "" && cfg != nil && cfg.DefaultDeviceID != "" {
+			deviceIDFlag = cfg.DefaultDeviceID
+		}
 		if deviceIDFlag == "" {
 			return fmt.Errorf("--device-id is required")
 		}

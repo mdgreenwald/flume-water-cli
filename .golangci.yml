@@ -9,16 +9,17 @@ linters:
     - bodyclose
     - godot
     - noctx
+  exclusions:
+    rules:
+      # CLI output errors (fmt.Fprintf to stdout/stderr) are unactionable.
+      - source: "fmt\\.F(print|printf|println)"
+        linters:
+          - errcheck
+      # HTTP response writes in test handlers are unactionable.
+      - path: _test\.go
+        linters:
+          - errcheck
+          - godot
 
 issues:
-  exclude-rules:
-    # CLI output errors (fmt.Fprintf to stdout/stderr) are unactionable.
-    - source: "fmt\\.F(print|printf|println)"
-      linters:
-        - errcheck
-    # HTTP response writes in test handlers are unactionable.
-    - path: _test\.go
-      linters:
-        - errcheck
-        - godot
   max-same-issues: 0
