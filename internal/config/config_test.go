@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestLoad_CreatesDefaultFileWhenMissing(t *testing.T) {
@@ -101,6 +102,65 @@ func TestSave_SetsFilePermissions(t *testing.T) {
 	}
 	if perm := info.Mode().Perm(); perm != 0o600 {
 		t.Errorf("config file permissions = %o, want 0600", perm)
+	}
+}
+
+func TestLoad_DefaultWarning(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+	if cfg.Warning != 90 {
+		t.Errorf("Warning = %d, want 90", cfg.Warning)
+	}
+}
+
+func TestSaveAndLoad_WithConsumables(t *testing.T) {
+	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+
+	installed := time.Date(2026, 3, 15, 0, 0, 0, 0, time.UTC)
+	w := 85
+	original := &Config{
+		OutputFormat: "table",
+		Warning:      90,
+		Consumables: map[string]map[string]*Consumable{
+			"dev1": {
+				"charcoal": {Installed: installed, Expires: 15000},
+				"sediment": {Installed: installed, Expires: 10000, Warning: &w},
+			},
+		},
+	}
+	if err := Save(original); err != nil {
+		t.Fatalf("Save() error: %v", err)
+	}
+
+	loaded, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error: %v", err)
+	}
+
+	charcoal := loaded.Consumables["dev1"]["charcoal"]
+	if charcoal == nil {
+		t.Fatal("charcoal consumable missing after round-trip")
+	}
+	if !charcoal.Installed.Equal(installed) {
+		t.Errorf("Installed = %v, want %v", charcoal.Installed, installed)
+	}
+	if charcoal.Expires != 15000 {
+		t.Errorf("Expires = %d, want 15000", charcoal.Expires)
+	}
+	if charcoal.Warning != nil {
+		t.Errorf("Warning = %v, want nil", charcoal.Warning)
+	}
+
+	sediment := loaded.Consumables["dev1"]["sediment"]
+	if sediment == nil {
+		t.Fatal("sediment consumable missing after round-trip")
+	}
+	if sediment.Warning == nil || *sediment.Warning != 85 {
+		t.Errorf("sediment Warning = %v, want 85", sediment.Warning)
 	}
 }
 
