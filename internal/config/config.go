@@ -7,9 +7,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
+
+// Consumable represents a tracked consumable water product (e.g. a filter).
+type Consumable struct {
+	Installed time.Time `yaml:"installed"`
+	Expires   int       `yaml:"expires"`           // gallons
+	Warning   *int      `yaml:"warning,omitempty"` // nil → use Config.Warning
+}
 
 // Config holds user-configurable CLI settings.
 type Config struct {
@@ -22,11 +30,19 @@ type Config struct {
 
 	// DefaultLocationID is used when --location-id is not provided.
 	DefaultLocationID string `yaml:"default_location_id,omitempty"`
+
+	// Warning is the global percentage threshold at which consumables show a
+	// warning. Per-consumable Warning fields override this.
+	Warning int `yaml:"warning"`
+
+	// Consumables maps device ID → consumable name → Consumable.
+	Consumables map[string]map[string]*Consumable `yaml:"consumables,omitempty"`
 }
 
 func defaults() Config {
 	return Config{
 		OutputFormat: "table",
+		Warning:      90,
 	}
 }
 

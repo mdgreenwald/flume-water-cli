@@ -10,6 +10,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mdgreenwald/flume-water-cli/internal/config"
 	flumewater "github.com/mdgreenwald/lib-flume-water"
 )
 
@@ -157,7 +158,21 @@ func setupTestClient(t *testing.T, serverURL string) {
 		deviceIDFlag = ""
 		daysFlag = 30
 		bucketFlag = "DAY"
+		outputFlag = "table"
+		pushGatewayFlag = ""
+		if f := consumablesStatusCmd.Flags().Lookup("output"); f != nil {
+			f.Changed = false
+		}
 	})
+}
+
+// writeTestConfig writes cfg to the XDG config dir established by setupTestClient.
+// Must be called after setupTestClient.
+func writeTestConfig(t *testing.T, cfg *config.Config) {
+	t.Helper()
+	if err := config.Save(cfg); err != nil {
+		t.Fatalf("writeTestConfig: %v", err)
+	}
 }
 
 // runCmd executes the given cobra command args and returns the combined output.
